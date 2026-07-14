@@ -178,6 +178,28 @@
 				</executions>
 			</plugin>
 
+			<!-- PMD: rileva bad practice e codice problematico sull'AST sorgente -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.24.0</version>
+				<configuration>
+					<rulesets>
+						<ruleset>/rulesets/java/quickstart.xml</ruleset>
+					</rulesets>
+					<targetJdk>21</targetJdk>
+					<failOnViolation>true</failOnViolation>
+					<printFailingErrors>true</printFailingErrors>
+				</configuration>
+				<executions>
+					<execution>
+						<id>pmd-check</id>
+						<phase>verify</phase>
+						<goals><goal>check</goal></goals>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 	</build>
 
