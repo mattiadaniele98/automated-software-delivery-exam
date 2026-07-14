@@ -4,7 +4,9 @@ import it.scuola.materie_service.exception.ResourceNotFoundException;
 import it.scuola.materie_service.model.Materia;
 import it.scuola.materie_service.model.MateriaDTO;
 import it.scuola.materie_service.model.MateriaResponseDTO;
+import it.scuola.materie_service.model.MateriaUpdateDTO;
 import it.scuola.materie_service.model.TipoMateria;
+import it.scuola.materie_service.service.MateriaClasseRepository;
 import it.scuola.materie_service.service.MateriaRepository;
 import it.scuola.materie_service.service.MateriaService;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,24 +25,30 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
- * Test unitari del MateriaService: usano Mockito per simulare il repository,
- * così il test non tocca il database.
+ * Test unitari del MateriaService.
+ * Puro Mockito, nessun contesto Spring, nessun database.
  */
-@ExtendWith(MockitoExtension.class)                 // Estende il test con il supporto di Mockito per l'iniezione di dipendenze e la creazione di mock
+@ExtendWith(MockitoExtension.class)
 class MateriaServiceTest {
 
     @Mock
     private MateriaRepository materiaRepository;
-                                                    // Crea un mock del repository MateriaRepository, che simula il comportamento del repository reale senza accedere al database
+
+    @Mock
+    private MateriaClasseRepository materiaClasseRepository;
+
     @InjectMocks
     private MateriaService materiaService;
 
     private Materia materiaEsistente;
     private UUID idEsistente;
-                                                    //Viene eseguito prima di ogni singolo test. Prepara i dati comuni, in questo caso un UUID e un oggetto Materia già popolato
+
     @BeforeEach
     void setUp() {
         idEsistente = UUID.randomUUID();
@@ -57,21 +65,17 @@ class MateriaServiceTest {
     @DisplayName("creaMateria - dovrebbe creare e restituire la materia")
     void creaMateria_dovrebbeCreareLaMateria() {
         MateriaDTO dto = new MateriaDTO("Matematica", "MAT", "Calcolo", 5, TipoMateria.TEORICA);
-                                                                                                // Configura il mock del repository per restituire false quando si verifica l'esistenza di codice e nome, e per restituire l'oggetto materiaEsistente quando si salva una nuova materia
         when(materiaRepository.existsByCodice("MAT")).thenReturn(false);
         when(materiaRepository.existsByNome("Matematica")).thenReturn(false);
         when(materiaRepository.save(any(Materia.class))).thenReturn(materiaEsistente);
 
-        MateriaResponseDTO risultato = materiaService.creaMateria(dto);                         // Chiama il metodo del servizio per creare una nuova materia e cattura il risultato in un DTO di risposta
-                                                                                                // Verifica che il risultato non sia nullo e che i campi del DTO di risposta corrispondano ai valori attesi, e che il metodo save del repository sia stato chiamato una volta
+        MateriaResponseDTO risultato = materiaService.creaMateria(dto);
+
         assertThat(risultato).isNotNull();
         assertThat(risultato.nome()).isEqualTo("Matematica");
         assertThat(risultato.codice()).isEqualTo("MAT");
         assertThat(risultato.tipoMateria()).isEqualTo(TipoMateria.TEORICA);
-                                                                                                //Verifica che il risultato sia quello atteso. Viene da AssertJ, una libreria di asserzioni più leggibile rispetto al classico assertEquals di JUnit
-        verify(materiaRepository, times(1)).save(any(Materia.class));                       // Verifica che il mock sia stato chiamato nel modo giusto per controllare che il service non chiami save quando non dovrebbe (caso del codice duplicato).
-
-
+        verify(materiaRepository, times(1)).save(any(Materia.class));
     }
 
     @Test
@@ -80,12 +84,21 @@ class MateriaServiceTest {
         MateriaDTO dto = new MateriaDTO("Matematica", "MAT", null, 5, TipoMateria.TEORICA);
         when(materiaRepository.existsByCodice("MAT")).thenReturn(true);
 
-        assertThatThrownBy(() -> materiaService.creaMateria(dto))                               // Verifica che lancia un'eccezione
+        assertThatThrownBy(() -> materiaService.creaMateria(dto))
                 .isInstanceOf(RuntimeException.class);
+        verify(materiaRepository, never()).save(any());
+    }
 
-        verify(materiaRepository, never()).save(any());                          // Verifica che il mock sia stato chiamato nel modo giusto per controllare che il service non chiami save quando non dovrebbe (caso del codice duplicato).
+    @Test
+    @DisplayName("creaMateria - dovrebbe lanciare eccezione se nome già esiste")
+    void creaMateria_dovrebbeLanciareEccezioneSeNomeDuplicato() {
+        MateriaDTO dto = new MateriaDTO("Matematica", "MAT", null, 5, TipoMateria.TEORICA);
+        when(materiaRepository.existsByCodice("MAT")).thenReturn(false);
+        when(materiaRepository.existsByNome("Matematica")).thenReturn(true);
 
-
+        assertThatThrownBy(() -> materiaService.creaMateria(dto))
+                .isInstanceOf(RuntimeException.class);
+        verify(materiaRepository, never()).save(any());
     }
 
     @Test
@@ -112,8 +125,7 @@ class MateriaServiceTest {
     @Test
     @DisplayName("trovaPerID - dovrebbe restituire la materia se l'ID esiste")
     void trovaPerID_dovrebbeRestituireLaMateria() {
-        when(materiaRepository.findById(idEsistente))
-                .thenReturn(Optional.of(materiaEsistente));
+        when(materiaRepository.findById(idEsistente)).thenReturn(Optional.of(materiaEsistente));
 
         MateriaResponseDTO risultato = materiaService.trovaPerID(idEsistente);
 
@@ -130,5 +142,78 @@ class MateriaServiceTest {
         assertThatThrownBy(() -> materiaService.trovaPerID(idInesistente))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining(idInesistente.toString());
+    }
+
+    @Test
+    @DisplayName("aggiornaMateria - dovrebbe lanciare eccezione se ID non esiste")
+    void aggiornaMateria_dovrebbeLanciareEccezioneSeIDNonEsiste() {
+        UUID idInesistente = UUID.randomUUID();
+        when(materiaRepository.findById(idInesistente)).thenReturn(Optional.empty());
+        MateriaUpdateDTO dto = new MateriaUpdateDTO("Fisica", null, null, null, null);
+
+        assertThatThrownBy(() -> materiaService.aggiornaMateria(idInesistente, dto))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("aggiornaMateria - dovrebbe aggiornare tutti i campi quando sono valorizzati")
+    void aggiornaMateria_dovrebbeAggiornareTuttiICampi() {
+        when(materiaRepository.findById(idEsistente)).thenReturn(Optional.of(materiaEsistente));
+        when(materiaRepository.save(any(Materia.class))).thenReturn(materiaEsistente);
+        MateriaUpdateDTO dto = new MateriaUpdateDTO("Fisica", "Fisica applicata", 4, TipoMateria.PRATICA, false);
+
+        MateriaResponseDTO risultato = materiaService.aggiornaMateria(idEsistente, dto);
+
+        assertThat(risultato).isNotNull();
+        verify(materiaRepository, times(1)).save(materiaEsistente);
+    }
+
+    @Test
+    @DisplayName("aggiornaMateria - non dovrebbe modificare i campi nulli")
+    void aggiornaMateria_nonDovrebbeAggiornareCampiNull() {
+        when(materiaRepository.findById(idEsistente)).thenReturn(Optional.of(materiaEsistente));
+        when(materiaRepository.save(any(Materia.class))).thenReturn(materiaEsistente);
+        MateriaUpdateDTO dto = new MateriaUpdateDTO(null, null, null, null, null);
+
+        MateriaResponseDTO risultato = materiaService.aggiornaMateria(idEsistente, dto);
+
+        assertThat(risultato).isNotNull();
+        assertThat(materiaEsistente.getNome()).isEqualTo("Matematica");
+        verify(materiaRepository, times(1)).save(materiaEsistente);
+    }
+
+    @Test
+    @DisplayName("eliminaMateria - dovrebbe lanciare eccezione se ID non esiste")
+    void eliminaMateria_dovrebbeLanciareEccezioneSeIDNonEsiste() {
+        UUID idInesistente = UUID.randomUUID();
+        when(materiaRepository.findById(idInesistente)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> materiaService.eliminaMateria(idInesistente))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("eliminaMateria - soft delete se la materia ha riferimenti in materie_classe")
+    void eliminaMateria_dovrebbeFareSoftDeleteSeHaRiferimenti() {
+        when(materiaRepository.findById(idEsistente)).thenReturn(Optional.of(materiaEsistente));
+        when(materiaClasseRepository.existsByMateriaId(idEsistente)).thenReturn(true);
+
+        materiaService.eliminaMateria(idEsistente);
+
+        assertThat(materiaEsistente.isActive()).isFalse();
+        verify(materiaRepository, times(1)).save(materiaEsistente);
+        verify(materiaRepository, never()).deleteById(any());
+    }
+
+    @Test
+    @DisplayName("eliminaMateria - hard delete se la materia non ha riferimenti")
+    void eliminaMateria_dovrebbeFareHardDeleteSeNonHaRiferimenti() {
+        when(materiaRepository.findById(idEsistente)).thenReturn(Optional.of(materiaEsistente));
+        when(materiaClasseRepository.existsByMateriaId(idEsistente)).thenReturn(false);
+
+        materiaService.eliminaMateria(idEsistente);
+
+        verify(materiaRepository, never()).save(any());
+        verify(materiaRepository, times(1)).deleteById(idEsistente);
     }
 }

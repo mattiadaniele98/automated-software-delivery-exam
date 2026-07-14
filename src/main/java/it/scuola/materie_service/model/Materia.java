@@ -1,6 +1,13 @@
 package it.scuola.materie_service.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -39,7 +46,9 @@ public class Materia {
     @Column(name = "active", nullable = false, columnDefinition = "boolean default true")
     private boolean active = true;
 
-    public Materia() {}
+    /** Required by JPA/Hibernate. */
+    @SuppressWarnings("PMD.UncommentedEmptyConstructor")
+    public Materia() { }
 
     public Materia(MateriaDTO dto) {
         this.nome = dto.nome();

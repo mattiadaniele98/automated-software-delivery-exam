@@ -24,4 +24,4 @@ public record MateriaDTO(
 
         @NotNull(message = "Il tipo materia è obbligatorio")
         TipoMateria tipoMateria
-) {}
+) { }

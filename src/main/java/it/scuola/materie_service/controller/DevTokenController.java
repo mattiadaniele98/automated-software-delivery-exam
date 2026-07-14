@@ -7,7 +7,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.crypto.SecretKey;
 import java.util.Base64;
@@ -22,13 +25,13 @@ import java.util.Map;
 @Tag(name = "DEV - Token Generator",
      description = "⚠️ Solo sviluppo. Genera token JWT per testare le API con Swagger.")
 @RestController
-@RequestMapping("/dev")                                                 // Tutte le rotte di questo controller saranno sotto /dev, ad esempio /dev/token per generare un token JWT di test dev escluso dalla sicurezza
+@RequestMapping("/dev")
 public class DevTokenController {
 
-    @Value("${jwt.chiave-segreta}")                                     // La chiave segreta per firmare i token JWT, letta da application.properties e decodificata da Base64
+    @Value("${jwt.chiave-segreta}")
     private String secret;
-                                                            // Stesso meccanismo di @Autowired ma per valori semplici invece che oggetti.
-    @Value("${jwt.durata-ms}")                                          // La durata dei token JWT in millisecondi, letta da application.properties
+
+    @Value("${jwt.durata-ms}")
     private long durataToken;
 
     @Operation(
@@ -37,11 +40,11 @@ public class DevTokenController {
     )
     @PostMapping("/token")
     public ResponseEntity<Map<String, String>> generaToken(
-            @RequestParam(defaultValue = "SEGRETERIA") String ruolo) {                  // Gestisce le richieste POST a /dev/token e genera un token JWT di test con il ruolo specificato come parametro (default: SEGRETERIA)
+            @RequestParam(defaultValue = "SEGRETERIA") String ruolo) {
 
-        SecretKey chiave = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));      // Crea una chiave segreta a partire dalla stringa decodificata da Base64, da usare per firmare il token JWT
+        SecretKey chiave = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
 
-        String token = Jwts.builder()                                                   // Decodifica la chiave per firmare
+        String token = Jwts.builder()
                 .subject("utente-test@scuola.it")
                 .claim("ruolo", ruolo)
                 .issuedAt(new Date())
@@ -49,7 +52,7 @@ public class DevTokenController {
                 .signWith(chiave)
                 .compact();
 
-        return ResponseEntity.ok(Map.of(                                                 // Restituisce il token JWT generato e map.of crea una mappa al volo senza bisogno di un DTO dedicato
+        return ResponseEntity.ok(Map.of(
                 "token", token,
                 "ruolo", ruolo,
                 "istruzioni", "Copia il token, clicca 'Authorize' in Swagger, incolla: Bearer <token>"

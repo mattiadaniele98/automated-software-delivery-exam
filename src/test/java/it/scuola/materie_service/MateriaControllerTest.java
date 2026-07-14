@@ -4,6 +4,7 @@ import it.scuola.materie_service.controller.MateriaController;
 import it.scuola.materie_service.exception.ResourceNotFoundException;
 import it.scuola.materie_service.model.MateriaDTO;
 import it.scuola.materie_service.model.MateriaResponseDTO;
+import it.scuola.materie_service.model.MateriaUpdateDTO;
 import it.scuola.materie_service.model.TipoMateria;
 import it.scuola.materie_service.service.MateriaService;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,11 +24,14 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
- * Test unitari del MateriaController con Mockito (nessun contesto Spring):
- * verificano che il controller chiami il service e restituisca lo status HTTP corretto.
+ * Test unitari del MateriaController.
+ * Puro Mockito, nessun contesto Spring.
  */
 @ExtendWith(MockitoExtension.class)
 class MateriaControllerTest {
@@ -61,7 +65,6 @@ class MateriaControllerTest {
         assertThat(risposta.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(risposta.getBody()).hasSize(1);
         assertThat(risposta.getBody().get(0).nome()).isEqualTo("Matematica");
-
         verify(materiaService, times(1)).trovaTutte();
     }
 
@@ -86,7 +89,6 @@ class MateriaControllerTest {
         assertThat(risposta.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(risposta.getBody()).isNotNull();
         assertThat(risposta.getBody().codice()).isEqualTo("MAT");
-
         verify(materiaService, times(1)).trovaPerID(idTest);
     }
 
@@ -111,7 +113,30 @@ class MateriaControllerTest {
         assertThat(risposta.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(risposta.getBody()).isNotNull();
         assertThat(risposta.getBody().nome()).isEqualTo("Matematica");
-
         verify(materiaService, times(1)).creaMateria(dto);
+    }
+
+    @Test
+    @DisplayName("aggiornaMateria - dovrebbe restituire 200 con la materia aggiornata")
+    void aggiornaMateria_dovrebbeRestituire200() {
+        MateriaUpdateDTO dto = new MateriaUpdateDTO("Fisica", null, null, null, null);
+        when(materiaService.aggiornaMateria(idTest, dto)).thenReturn(responseDTO);
+
+        ResponseEntity<MateriaResponseDTO> risposta = materiaController.aggiornaMateria(idTest, dto);
+
+        assertThat(risposta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(risposta.getBody()).isNotNull();
+        verify(materiaService, times(1)).aggiornaMateria(idTest, dto);
+    }
+
+    @Test
+    @DisplayName("eliminaMateria - dovrebbe restituire 204 No Content")
+    void eliminaMateria_dovrebbeRestituire204() {
+        doNothing().when(materiaService).eliminaMateria(idTest);
+
+        ResponseEntity<Void> risposta = materiaController.eliminaMateria(idTest);
+
+        assertThat(risposta.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        verify(materiaService, times(1)).eliminaMateria(idTest);
     }
 }
