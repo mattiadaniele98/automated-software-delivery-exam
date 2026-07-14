@@ -61,6 +61,10 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
 
+    # packages: write richiede anche che il repository abbia
+    # "Workflow permissions" impostato su "Read and write permissions"
+    # in Settings -> Actions -> General, altrimenti il push su ghcr.io
+    # fallisce con "denied: permission_denied: write_package"
     permissions:
       contents: read
       packages: write
