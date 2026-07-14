@@ -4,17 +4,18 @@ import it.scuola.materie_service.model.Materia;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
  * Repository per la tabella "materie".
  */
 @Repository
-public interface MateriaRepository extends CrudRepository<Materia, UUID> {                      // Interfaccia che estende CrudRepository per fornire operazioni CRUD sulla tabella "materie" nel database db_materie
+public interface MateriaRepository extends CrudRepository<Materia, UUID> {
 
-    boolean existsByCodice(String codice);                      // Metodo per verificare se esiste una materia con un determinato codice nel database
+    boolean existsByCodice(String codice);
 
-    boolean existsByNome(String nome);                          // Metodo per verificare se esiste una materia con un determinato nome nel database
+    boolean existsByNome(String nome);
 
-    java.util.List<Materia> findAllByActiveTrue();              // Metodo per recuperare tutte le materie attive (active = true) dal database come lista di oggetti Materia
+    List<Materia> findAllByActiveTrue();
 }

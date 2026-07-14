@@ -11,11 +11,11 @@ import java.util.UUID;
  * Repository per la tabella "materie_classe".
  */
 @Repository
-public interface MateriaClasseRepository extends CrudRepository<MateriaClasse, UUID> {              // Interfaccia che estende CrudRepository per fornire operazioni CRUD sulla tabella "materie_classe" nel database db_materie
+public interface MateriaClasseRepository extends CrudRepository<MateriaClasse, UUID> {
 
-    Collection<MateriaClasse> findByIdClasse(UUID idClasse);                                        // Metodo per recuperare tutte le assegnazioni di materie per una classe specifica dal database come collezione di oggetti MateriaClasse
+    Collection<MateriaClasse> findByIdClasse(UUID idClasse);
 
-    boolean existsByIdClasseAndMateriaId(UUID idClasse, UUID materiaId);                            // Metodo per verificare se esiste già un'assegnazione di una materia a una classe specifica nel database
+    boolean existsByIdClasseAndMateriaId(UUID idClasse, UUID materiaId);
 
     // usato per decidere hard delete o soft delete su una materia
     boolean existsByMateriaId(UUID materiaId);

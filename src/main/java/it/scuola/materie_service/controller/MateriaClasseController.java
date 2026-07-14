@@ -12,7 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
@@ -34,8 +41,8 @@ public class MateriaClasseController {
         @ApiResponse(responseCode = "401", description = "Token JWT mancante o non valido")
     })
     @GetMapping
-    public ResponseEntity<List<MateriaClasseResponseDTO>> trovaPerClasse(                   // Gestisce le richieste GET a /api/v1/materie-classe?idClasse={idClasse} e restituisce la lista delle materie assegnate a una classe specifica tramite ID come DTO di risposta
-            @RequestParam UUID idClasse) {                                                  // Prende il parametro idClasse dalla query string della richiesta
+    public ResponseEntity<List<MateriaClasseResponseDTO>> trovaPerClasse(
+            @RequestParam UUID idClasse) {
         return ResponseEntity.ok(materiaClasseService.trovaPerClasse(idClasse));
     }
 
@@ -44,7 +51,7 @@ public class MateriaClasseController {
         @ApiResponse(responseCode = "201", description = "Assegnazione creata con successo"),
         @ApiResponse(responseCode = "400", description = "Dati di input non validi"),
         @ApiResponse(responseCode = "401", description = "Token JWT mancante o non valido"),
-        @ApiResponse(responseCode = "403", description = "Ruolo non autorizzato (richiesto: SEGRETERIA, ADMIN, SUPER_ADMIN)"),
+        @ApiResponse(responseCode = "403", description = "Ruolo non autorizzato"),
         @ApiResponse(responseCode = "404", description = "Materia non trovata"),
         @ApiResponse(responseCode = "409", description = "Materia già assegnata a questa classe")
     })

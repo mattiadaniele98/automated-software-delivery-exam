@@ -24,16 +24,17 @@ public class MateriaClasseService {
     private MateriaRepository materiaRepository;
 
     public MateriaClasseResponseDTO assegnaMateria(MateriaClasseDTO dto) {
-        Materia materia = this.materiaRepository.findById(dto.idMateria())              // Recupera la materia dal database usando l'idMateria fornito nel DTO, o restituisce un'eccezione se non trovata 404
+        Materia materia = this.materiaRepository.findById(dto.idMateria())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Materia non trovata con id: " + dto.idMateria()));
 
-        if (this.materiaClasseRepository.existsByIdClasseAndMateriaId(dto.idClasse(), dto.idMateria())) {           // Controlla se esiste già un'assegnazione della materia alla classe, e restituisce un'eccezione 409 se sì
+        if (this.materiaClasseRepository.existsByIdClasseAndMateriaId(
+                dto.idClasse(), dto.idMateria())) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT, "Questa materia è già assegnata alla classe");
         }
 
-        MateriaClasse mc = new MateriaClasse();                         // Crea una nuova entità MateriaClasse per rappresentare l'assegnazione della materia alla classe
+        MateriaClasse mc = new MateriaClasse();
         mc.setIdClasse(dto.idClasse());
         mc.setMateria(materia);
         mc.setOreSettimanaliPersonalizzate(dto.oreSettimanaliPersonalizzate());
@@ -41,14 +42,14 @@ public class MateriaClasseService {
         return new MateriaClasseResponseDTO(this.materiaClasseRepository.save(mc));
     }
 
-    public List<MateriaClasseResponseDTO> trovaPerClasse(UUID idClasse) {                                       // Restituisce tutte le assegnazioni di materie per una classe specifica come lista di DTO di risposta
+    public List<MateriaClasseResponseDTO> trovaPerClasse(UUID idClasse) {
         Collection<MateriaClasse> lista = this.materiaClasseRepository.findByIdClasse(idClasse);
         return lista.stream()
                 .map(MateriaClasseResponseDTO::new)
                 .toList();
     }
 
-    public void rimuoviAssegnazione(UUID id) {                              // Rimuove un'assegnazione di materia a una classe dal database a partire dall'ID dell'assegnazione, o restituisce un'eccezione 404 se non trovata
+    public void rimuoviAssegnazione(UUID id) {
         if (!this.materiaClasseRepository.existsById(id)) {
             throw new ResourceNotFoundException(
                     "Assegnazione non trovata con id: " + id);

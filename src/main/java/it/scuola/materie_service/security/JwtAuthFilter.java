@@ -22,9 +22,9 @@ import java.util.Set;
  * prosegue e verrà eventualmente bloccata dalla SecurityConfig.
  */
 @Component
-public class JwtAuthFilter extends OncePerRequestFilter {                   // Estende OncePerRequestFilter per essere eseguito una volta per ogni richiesta HTTP
+public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private static final Set<String> PUBLIC_PREFIXES = Set.of(              // Percorsi pubblici che non richiedono autenticazione JWT
+    private static final Set<String> PUBLIC_PREFIXES = Set.of(
             "/swagger-ui", "/v3/", "/dev/"
     );
 
@@ -32,13 +32,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {                   // E
     private JwtService jwtService;
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {         // Esclude i percorsi pubblici dal filtro JWT, ad esempio quelli per Swagger UI e OpenAPI
+    protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         return PUBLIC_PREFIXES.stream().anyMatch(path::startsWith);
     }
 
     @Override
-    protected void doFilterInternal(                                        // Metodo principale del filtro: legge l'header Authorization, valida il token JWT e, se valido, imposta l'autenticazione nel SecurityContext
+    protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
@@ -50,10 +50,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {                   // E
             return;
         }
 
-        String token = authHeader.substring(7);             // Estrae il token JWT rimuovendo il prefisso "Bearer "
+        // rimuove il prefisso "Bearer "
+        String token = authHeader.substring(7);
 
         if (jwtService.isTokenValid(token) &&
-                SecurityContextHolder.getContext().getAuthentication() == null) {               // Se il token JWT è valido e non c'è già un'autenticazione nel contesto di sicurezza, estrae i dati dal token e imposta l'autenticazione
+                SecurityContextHolder.getContext().getAuthentication() == null) {
 
             String username = jwtService.extractSubject(token);
             String role     = jwtService.extractRole(token);

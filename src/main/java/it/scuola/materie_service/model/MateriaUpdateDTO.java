@@ -12,4 +12,4 @@ public record MateriaUpdateDTO(
         Integer oreSettimanali,
         TipoMateria tipoMateria,
         Boolean active
-) {}
+) { }

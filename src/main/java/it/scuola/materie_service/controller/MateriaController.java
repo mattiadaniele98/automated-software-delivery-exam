@@ -13,7 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,21 +30,21 @@ import java.util.UUID;
  * Le rotte sono sotto /api/v1/materie; il VersioningFilter fa arrivare qui
  * anche le chiamate a /materie.
  */
-@Tag(name = "Materie", description = "Catalogo delle materie scolastiche")              // Tag per la documentazione OpenAPI/Swagger
-@RestController                                                                         // Indica a Spring che questa classe è un controller REST e può gestire richieste HTTP
-@RequestMapping("/api/v1/materie")                                                      // Mappa tutte le richieste che iniziano con /api/v1/materie a questo controller
+@Tag(name = "Materie", description = "Catalogo delle materie scolastiche")
+@RestController
+@RequestMapping("/api/v1/materie")
 public class MateriaController {
 
     @Autowired
     private MateriaService materiaService;
 
-    @Operation(summary = "Restituisce il catalogo completo delle materie")              // Descrizione dell'operazione per la documentazione OpenAPI/Swagger
+    @Operation(summary = "Restituisce il catalogo completo delle materie")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Lista materie restituita con successo"),
         @ApiResponse(responseCode = "401", description = "Token JWT mancante o non valido")
     })
     @GetMapping
-    public ResponseEntity<List<MateriaResponseDTO>> trovaTutte() {                      // Gestisce le richieste GET a /api/v1/materie e restituisce la lista completa delle materie come DTO di risposta
+    public ResponseEntity<List<MateriaResponseDTO>> trovaTutte() {
         return ResponseEntity.ok(materiaService.trovaTutte());
     }
 
@@ -47,9 +54,9 @@ public class MateriaController {
         @ApiResponse(responseCode = "404", description = "Materia non trovata"),
         @ApiResponse(responseCode = "401", description = "Token JWT mancante o non valido")
     })
-    @GetMapping("/{id}")                                                                // Get con parametro ID nella rotta, ad esempio /api/v1/materie/123e4567-e89b-12d3-a456-426614174000 e restituisce il dettaglio di quella materia specifica
+    @GetMapping("/{id}")
     public ResponseEntity<MateriaResponseDTO> trovaPerID(
-            @PathVariable UUID id) {                                                    // Gestisce le richieste GET a /api/v1/materie/{id} e restituisce il dettaglio di una materia specifica tramite ID come DTO di risposta
+            @PathVariable UUID id) {
         return ResponseEntity.ok(materiaService.trovaPerID(id));
     }
 
@@ -62,12 +69,12 @@ public class MateriaController {
         @ApiResponse(responseCode = "409", description = "Materia già esistente con stesso codice o nome")
     })
     @PostMapping
-    @PreAuthorize("hasAnyRole('SEGRETERIA', 'ADMIN', 'SUPER_ADMIN')")                   // Richiede che l'utente abbia uno dei ruoli specificati per poter accedere a questa rotta
+    @PreAuthorize("hasAnyRole('SEGRETERIA', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<MateriaResponseDTO> creaMateria(
-            @RequestBody @Valid MateriaDTO dto) {                                       // Prende il json della richiesta e lo mappa in un oggetto MateriaDTO, validandolo automaticamente
+            @RequestBody @Valid MateriaDTO dto) {
 
         MateriaResponseDTO nuova = materiaService.creaMateria(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuova);                   // Restituisce lo status 201 Created e il DTO della nuova materia creata
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuova);
     }
 
     @Operation(summary = "Aggiorna una materia esistente (ruolo: SEGRETERIA, ADMIN, SUPER_ADMIN)")
@@ -78,10 +85,10 @@ public class MateriaController {
         @ApiResponse(responseCode = "403", description = "Ruolo non autorizzato (richiesto: SEGRETERIA)")
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SEGRETERIA', 'ADMIN', 'SUPER_ADMIN')")               
+    @PreAuthorize("hasAnyRole('SEGRETERIA', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<MateriaResponseDTO> aggiornaMateria(
-            @PathVariable UUID id,                                                      // Prende l'ID della materia dalla rotta
-            @RequestBody MateriaUpdateDTO dto) {                                        // Prende il json della richiesta e lo mappa in un oggetto MateriaUpdateDTO, senza validazione automatica perchè tutti i campi sono opzionali (partial update)
+            @PathVariable UUID id,
+            @RequestBody MateriaUpdateDTO dto) {
 
         return ResponseEntity.ok(materiaService.aggiornaMateria(id, dto));
     }
