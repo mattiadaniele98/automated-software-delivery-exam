@@ -43,8 +43,6 @@ public class MateriaClasse {
     @Column(name = "ore_settimanali_personalizzate")
     private Integer oreSettimanaliPersonalizzate;
 
-    public MateriaClasse() { }
-
     public UUID getId() { return id; }
 
     public UUID getIdClasse() { return idClasse; }

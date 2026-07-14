@@ -46,6 +46,7 @@ public class Materia {
     @Column(name = "active", nullable = false, columnDefinition = "boolean default true")
     private boolean active = true;
 
+    /** Required by JPA/Hibernate. */
     public Materia() { }
 
     public Materia(MateriaDTO dto) {
