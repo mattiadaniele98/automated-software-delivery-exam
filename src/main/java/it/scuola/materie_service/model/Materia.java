@@ -47,6 +47,7 @@ public class Materia {
     private boolean active = true;
 
     /** Required by JPA/Hibernate. */
+    @SuppressWarnings("PMD.UncommentedEmptyConstructor")
     public Materia() { }
 
     public Materia(MateriaDTO dto) {
