@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+
+    <!--
+        EI_EXPOSE_REP / EI_EXPOSE_REP2: SpotBugs segnala che getter e setter
+        di MateriaClasse espongono/ricevono un riferimento diretto all'entity
+        Materia. Questo è necessario per il funzionamento di Hibernate (che
+        gestisce il ciclo di vita degli oggetti): non è un bug reale.
+    -->
+    <Match>
+        <Class name="it.scuola.materie_service.model.MateriaClasse"/>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+
+</FindBugsFilter>
